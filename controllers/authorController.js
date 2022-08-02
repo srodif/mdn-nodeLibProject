@@ -35,6 +35,7 @@ exports.author_detail = (req, res, next) => {
 
 
 
+
 exports.author_create_get = (req, res, next) => {
   res.render('author_form', { title: "Create Author"});
 };
@@ -80,6 +81,7 @@ exports.author_create_post = [
 
 
 
+
 exports.author_update_get = (req, res) => {
   res.send('ni');
 };
@@ -88,8 +90,15 @@ exports.author_update_post = (req, res) => {
   res.send('ni');
 };
 
-exports.author_delete_get = (req, res) => {
-  res.send('ni');
+
+
+
+exports.author_delete_get = (req, res, next) => {
+  async.parallel({
+    author(callback) {
+      Author.findById(req.params.id).exec(callback);
+    },
+  });
 };
 
 exports.author_delete_post = (req, res) => {

@@ -42,7 +42,7 @@ exports.bookinstance_create_post = [
   //validate and sanitize inputs
   body('book', 'Book should be specified').trim().isLength({min: 1}).escape(),
   body('imprint', 'Imprint must be specified').trim().isLength({min: 1}).escape(),
-  body('copyStatus').escape(),
+  body('copyStatus','Problem at copystatus').escape(),
   body('dueBack', 'Invalid date').optional({checkFalsy: true}).isISO8601().toDate(),
 
   (req,res,next) => {
@@ -61,7 +61,7 @@ exports.bookinstance_create_post = [
         exec( (err,books) => {
           if (err) { return next(err); }
 
-          res.render('bookinstance_form', {title: 'Create BookInstance', book_list: books, selected_book: bookinstance_book._id, errors: errors.array(), bookinstance: bookinstance})
+          res.render('bookinstance_form', {title: 'Create BookInstance', book_list: books, selected_book: bookinstance.book._id, errors: errors.array(), bookinstance: bookinstance})
         });
       return;
       
