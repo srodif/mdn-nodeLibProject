@@ -98,9 +98,39 @@ exports.author_delete_get = (req, res, next) => {
     author(callback) {
       Author.findById(req.params.id).exec(callback);
     },
+    authors_books(callback) {
+      Book.find({'author: req.params.id'}).exec(callback);
+    }
+  }, (err, results) => {
+    if (err) { return next(err); }
+    if (results.author==null) {
+      res.redirect('/catalog/authors');
+    }
+    res.render('author_delete', {title: 'Delete Author', author: results.author, author_books: results.authors_books});
   });
 };
 
-exports.author_delete_post = (req, res) => {
-  res.send('ni');
+exports.author_delete_post = (req, res, next) => {
+  async.parallel({
+    author(callback) {
+      Author.findById(req.body.authorid).exec(callback);
+    },
+    authors_books(callback) {
+      Book.find({'author':req.body.authorid}).exec(callback);
+    }
+  }, (err, results) => {
+    if (err) { return next(err); }
+
+    if (results.authors_books.length > 0) {
+      //Author has books. We will not delete the record if that is the case, in this implementation
+      res.render('author_delete', {title: 'Delete Author', author: results.author, author_books: results.authors_books});
+      return;
+    } else {
+      //If author does not have books, delete
+      Author.findByIdAndRemove(req.body.authorid, function deleteAuthor(err) {
+        if (err) { return next(err); }
+        res.redirect('/catalog/authors');
+      })
+    }
+  });
 };
