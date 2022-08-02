@@ -86,10 +86,34 @@ exports.bookinstance_update_post = (req, res) => {
   res.send('ni');
 };
 
-exports.bookinstance_delete_get = (req, res) => {
-  res.send('ni');
+
+
+
+exports.bookinstance_delete_get = (req, res, next) => {
+  async.parallel({
+    bookinstance(callback) {
+      BookInstance.findById(req.params.id).exec(callback);
+    }
+  }, (err, results) => {
+    if (err) { return next(err); }
+    if (results.genre==null) {
+      res.redirect('/catalog/bookinstances');
+    }
+    res.render('bookinstance_delete', {title: 'Delete Book Copy', bookinstance: results.bookinstance});
+  });
 };
 
-exports.bookinstance_delete_post = (req, res) => {
-  res.send('ni');
+exports.bookinstance_delete_post = (req, res, next) => {
+  async.parallel({
+    bookinstance(callback) {
+      BookInstance.findById(req.body.bookinstanceid).exec(callback);
+    }
+  }, (err, results) => {
+    if (err) { return next(err); }
+
+    BookInstance.findByIdAndRemove(req.body.bookinstanceid, function deleteGenre(err) {
+        if (err) { return next(err); }
+        res.redirect('/catalog/bookinstances');
+    });
+  });
 };
