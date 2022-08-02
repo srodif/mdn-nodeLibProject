@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  h1= title
+
+  ul
+    each copy in bookinstance_list
+      li
+        a(href=copy.url) #{copy.book.title} : #{copy.imprint} -
+        if copy.status =='Available'
+          span.text-success #{copy.status}
+        else if copy.status=='Maintenance'
+          span.text-danger #{copy.status}
+        else
+          span.text-warning #{copy.status}
+        if copy.status!='Available'
+          //span  (Due: #{copy.dueBack} )
+          span  (Due: #{copy.due_back_formatted} )
+
+
+    else
+      li There are no book copies in this library.

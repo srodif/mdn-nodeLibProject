@@ -1,0 +1,34 @@
+extends layout
+
+block content
+  h1 Title: #{book.title}
+
+  p #[strong Author: ]
+    a(href=book.author.url) #{book.author.name}
+  p #[strong Summary: ] #{book.summary}
+  p #[strong ISBN: ] #{book.isbn}
+  p #[strong Genre: ]
+    each kind, index in book.genre
+      a(href=kind.url) #{kind.name}
+      if index < book.genre.length - 1
+      |,
+
+  div(style='margin-left:20px;margin-top:20px')
+    h4 copies
+
+    each copy in book_instances
+      hr
+      if copy.status=='Available'
+        p.text-success #{copy.status}
+      else if copy.status=='Maintenance'
+        p.text-danger #{copy.status}
+      else
+        p.text-warning #{copy.status}
+      p #[strong Imprint: ] #{copy.imprint}
+      if copy.status!='Available'
+        p #[Strong Due back: ] #{copy.due_back_formatted}
+      p #[Strong Id: ]
+        a(href=copy.url) #{copy._id}
+
+    else
+      p There are no copies of this book in this library.
