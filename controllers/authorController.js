@@ -130,7 +130,7 @@ exports.author_delete_post = (req, res, next) => {
       Author.findByIdAndRemove(req.body.authorid, function deleteAuthor(err) {
         if (err) { return next(err); }
         res.redirect('/catalog/authors');
-      })
+      });
     }
   });
 };
