@@ -156,14 +156,51 @@ exports.book_create_post = [
 
 
 // Display book delete form on GET.
-exports.book_delete_get = function(req, res) {
-    res.send('NOT IMPLEMENTED: Book delete GET');
+exports.book_delete_get = function(req, res, next) {
+    async.parallel({
+    book(callback) {
+      Book.findById(req.params.id).exec(callback);
+    },
+    books_copies(callback) {
+      BookInstance.find({ 'book': req.params.id }).exec(callback);
+    }
+  }, (err, results) => {
+    if (err) { return next(err); }
+    if (results.book==null) {
+      res.redirect('/catalog/books');
+    }
+    res.render('book_delete', {title: 'Delete Book', book: results.book, book_copies: results.books_copies});
+  });
 };
 
 // Handle book delete on POST.
-exports.book_delete_post = function(req, res) {
-    res.send('NOT IMPLEMENTED: Book delete POST');
+exports.book_delete_post = function(req, res, next) {
+    async.parallel({
+    book(callback) {
+      Book.findById(req.body.bookid).exec(callback);
+    },
+    books_copies(callback) {
+      BookInstance.find({'book':req.body.bookid}).exec(callback);
+    }
+  }, (err, results) => {
+    if (err) { return next(err); }
+
+    if (results.books_copies.length > 0) {
+      //Book has copies. We will not delete the record if that is the case, in this implementation
+      res.render('book_delete', {title: 'Delete Book', book: results.book, book_copies: results.books_copies});
+      return;
+    } else {
+      //If book does not have copies, delete
+      Book.findByIdAndRemove(req.body.bookid, function deleteBook(err) {
+        if (err) { return next(err); }
+        res.redirect('/catalog/books');
+      })
+    }
+  });
 };
+
+
+
 
 // Display book update form on GET.
 exports.book_update_get = function(req, res) {
