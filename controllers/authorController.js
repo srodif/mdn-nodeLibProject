@@ -46,7 +46,7 @@ exports.author_create_post = [
     .isAlphanumeric().withMessage('First name has non-alphanumeric characters.'),
   body('family_name').trim().isLength({ min: 1 }).escape().withMessage('Family name should be specified.')
         .isAlphanumeric().withMessage('Family name has non-alphanumeric characters.'),
-  
+  //the dates are not rendered correctly on the form, even if they are taken correctly on the post method
   body('date_of_birth', 'Invalid date of birth').optional({ checkFalsy: true }).isISO8601().toDate(),
    body('date_of_death', 'Invalid date of death').optional({ checkFalsy: true }).isISO8601().toDate(),
 
@@ -83,12 +83,65 @@ exports.author_create_post = [
 
 
 exports.author_update_get = (req, res) => {
-  res.send('ni');
+  async.parallel({
+      author(callback) {
+        Author.findById(req.params.id)
+        .exec(callback);
+      }
+    }, function(err, results) {
+      if (err) { return next(err); }
+      if (results.author==null) {
+        const err = new Error('Author not found')
+        err.status = 404;
+        return next(err);
+      }
+
+      res.render('author_form', {title: 'Update Author', author: results.author});
+    }
+    );
 };
 
-exports.author_update_post = (req, res) => {
-  res.send('ni');
-};
+exports.author_update_post = [
+  //validate and sanitize inputs
+  body('first_name').trim().isLength({min: 1}).escape()
+  .withMessage('First name should be specified.')
+    .isAlphanumeric().withMessage('First name has non-alphanumeric characters.'),
+  body('family_name').trim().isLength({ min: 1 }).escape().withMessage('Family name should be specified.')
+        .isAlphanumeric().withMessage('Family name has non-alphanumeric characters.'),
+  //the dates are not rendered correctly on the form, even if they are taken correctly on the post method
+  body('date_of_birth', 'Invalid date of birth').optional({ checkFalsy: true }).isISO8601().toDate(),
+   body('date_of_death', 'Invalid date of death').optional({ checkFalsy: true }).isISO8601().toDate(),
+
+  //full request process
+  (req, res, next) => {
+    const errors = validationResult(req);
+
+    let author = new Author(
+      {
+        first_name: req.body.first_name,
+          family_name: req.body.family_name,
+          date_of_birth: req.body.date_of_birth,
+          date_of_death: req.body.date_of_death,
+        _id: req.params.id
+      }
+    );
+
+    if (!errors.isEmpty()) {
+      //errors exist. Render form again with errors
+
+        res.render('book_form', { title: 'Update Book', authors: results.authors, genres: results.genres, book: book, errors: errors.array() });     
+        
+      return;
+    } else {
+      //no Errors, valid data. Update!
+      Author.findByIdAndUpdate(req.params.id, author, {}, (err, updAuthor) => {
+        if (err) { return next(err); }
+
+        res.redirect(updAuthor.url);
+      });
+    }
+  } 
+];
 
 
 
