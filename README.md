@@ -1,5 +1,5 @@
 # mdn-nodeLibProject
-dev git for mdn nodeLib
+dev git for mdn nodeLib (a simple Node.js/Express/MongoDB(Atlas) project)
 
 A simple, dynamic website for a local library,
 developed with the <a href= "https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs">tutorial</a> available at mdn web docs.
