@@ -1,6 +1,7 @@
 const BookInstance = require('../models/bookinstance');
 const Book = require('../models/book');
 const { body, validationResult } = require('express-validator');
+const async = require('async');
 
 exports.bookinstance_list = (req, res, next) => {
   BookInstance.find()
@@ -42,7 +43,7 @@ exports.bookinstance_create_post = [
   //validate and sanitize inputs
   body('book', 'Book should be specified').trim().isLength({min: 1}).escape(),
   body('imprint', 'Imprint must be specified').trim().isLength({min: 1}).escape(),
-  body('copyStatus').escape(),
+  body('copyStatus','Problem at copystatus').escape(),
   body('dueBack', 'Invalid date').optional({checkFalsy: true}).isISO8601().toDate(),
 
   (req,res,next) => {
@@ -61,7 +62,7 @@ exports.bookinstance_create_post = [
         exec( (err,books) => {
           if (err) { return next(err); }
 
-          res.render('bookinstance_form', {title: 'Create BookInstance', book_list: books, selected_book: bookinstance_book._id, errors: errors.array(), bookinstance: bookinstance})
+          res.render('bookinstance_form', {title: 'Create BookInstance', book_list: books, selected_book: bookinstance.book._id, errors: errors.array(), bookinstance: bookinstance})
         });
       return;
       
@@ -78,18 +79,101 @@ exports.bookinstance_create_post = [
 
 
 
-exports.bookinstance_update_get = (req, res) => {
-  res.send('ni');
+exports.bookinstance_update_get = (req, res, next) => {
+  async.parallel({
+      bookinstance(callback) {
+        BookInstance.findById(req.params.id)
+        .populate('book')
+        .exec(callback);
+      },
+      books(callback) {
+        Book.find(callback);
+      }
+    }, function(err, results) {
+      if (err) { return next(err); }
+      if (results.bookinstance==null) {
+        const err = new Error('Book copy not found')
+        err.status = 404;
+        return next(err);
+      }
+      res.render('bookinstance_form', {title: 'Update Book copy', book_list: results.books, selected_book: results.bookinstance.book._id, bookinstance: results.bookinstance});
+    }
+  );
 };
 
-exports.bookinstance_update_post = (req, res) => {
-  res.send('ni');
+exports.bookinstance_update_post = [
+  //validate and sanitize inputs
+  body('book', 'Book should be specified').trim().isLength({min: 1}).escape(),
+  body('imprint', 'Imprint must be specified').trim().isLength({min: 1}).escape(),
+  body('copyStatus','Problem at copystatus').escape(),
+  body('dueBack', 'Invalid date').optional({checkFalsy: true}).isISO8601().toDate(),
+
+  //full request process
+  (req, res, next) => {
+    const errors = validationResult(req);
+
+    let bookinstance = new BookInstance(
+      {
+        book: req.body.book,
+        imprint: req.body.imprint,
+        copyStatus: req.body.copyStatus,
+        dueBack: req.body.dueBack,
+        _id: req.params.id
+      }
+    );
+
+    if (!errors.isEmpty()) {
+      //errors exist. Render form again with errors
+      async.parallel({
+        books(callback) {
+          Book.find(callback);
+        }
+      }, (err, results) => {
+        if (err) { return next(err); }
+
+        res.render('bookinstance_form', { title: 'Update Book copy', book_list: results.books, selected_book: results.bookinstance.book._id, bookinstance: results.bookinstance, errors: errors.array() });     
+        }
+      );
+      return;
+    } else {
+      //no Errors, valid data. Update!
+      BookInstance.findByIdAndUpdate(req.params.id, bookinstance, {}, (err, updBookInstance) => {
+        if (err) { return next(err); }
+
+        res.redirect(updBookInstance.url);
+      });
+    }
+  } 
+];
+
+
+
+
+exports.bookinstance_delete_get = (req, res, next) => {
+  async.parallel({
+    bookinstance(callback) {
+      BookInstance.findById(req.params.id).exec(callback);
+    }
+  }, (err, results) => {
+    if (err) { return next(err); }
+    if (results.genre==null) {
+      res.redirect('/catalog/bookinstances');
+    }
+    res.render('bookinstance_delete', {title: 'Delete Book Copy', bookinstance: results.bookinstance});
+  });
 };
 
-exports.bookinstance_delete_get = (req, res) => {
-  res.send('ni');
-};
+exports.bookinstance_delete_post = (req, res, next) => {
+  async.parallel({
+    bookinstance(callback) {
+      BookInstance.findById(req.body.bookinstanceid).exec(callback);
+    }
+  }, (err, results) => {
+    if (err) { return next(err); }
 
-exports.bookinstance_delete_post = (req, res) => {
-  res.send('ni');
+    BookInstance.findByIdAndRemove(req.body.bookinstanceid, function deleteGenre(err) {
+        if (err) { return next(err); }
+        res.redirect('/catalog/bookinstances');
+    });
+  });
 };

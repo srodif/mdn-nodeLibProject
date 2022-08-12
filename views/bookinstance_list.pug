@@ -7,13 +7,13 @@ block content
     each copy in bookinstance_list
       li
         a(href=copy.url) #{copy.book.title} : #{copy.imprint} -
-        if copy.status =='Available'
-          span.text-success #{copy.status}
-        else if copy.status=='Maintenance'
-          span.text-danger #{copy.status}
+        if copy.copyStatus =='Available'
+          span.text-success #{copy.copyStatus}
+        else if copy.copyStatus=='Maintenance'
+          span.text-danger #{copy.copyStatus}
         else
-          span.text-warning #{copy.status}
-        if copy.status!='Available'
+          span.text-warning #{copy.copyStatus}
+        if copy.copyStatus!='Available'
           //span  (Due: #{copy.dueBack} )
           span  (Due: #{copy.due_back_formatted} )
 

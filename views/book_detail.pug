@@ -18,17 +18,23 @@ block content
 
     each copy in book_instances
       hr
-      if copy.status=='Available'
-        p.text-success #{copy.status}
-      else if copy.status=='Maintenance'
-        p.text-danger #{copy.status}
+      if copy.copyStatus=='Available'
+        p.text-success #{copy.copyStatus}
+      else if copy.copyStatus=='Maintenance'
+        p.text-danger #{copy.copyStatus}
       else
-        p.text-warning #{copy.status}
+        p.text-warning #{copy.copyStatus}
       p #[strong Imprint: ] #{copy.imprint}
-      if copy.status!='Available'
+      if copy.copyStatus!='Available'
         p #[Strong Due back: ] #{copy.due_back_formatted}
       p #[Strong Id: ]
         a(href=copy.url) #{copy._id}
 
     else
       p There are no copies of this book in this library.
+
+  hr
+  p
+    a(href=book.url+'/delete') Delete book
+  p
+    a(href=book.url+'/update') Update book
