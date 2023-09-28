@@ -14,7 +14,7 @@ var app = express();
 
 //setup mongoose connection
 const mongoose = require('mongoose');
-const MongoDB = process.env['db_full_connection'];
+const MongoDB = process.env['DB_FULL_CONNECTION'];
 mongoose.connect(MongoDB, {
                             useNewUrlParser: true,
                             useUnifiedTopology: true
