@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "debugstart": "SET DEBUG= :* & npm start"
+    "debugstart": "SET DEBUG= :* & npm start",
+    "build": "babel src -d dist",
+    "test": "mocha"
   },
   "dependencies": {
     "async": "^3.2.4",
@@ -19,5 +21,11 @@
     "mongoose": "^6.4.4",
     "morgan": "~1.9.1",
     "pug": "2.0.0-beta11"
+  },
+  "devDependencies": {
+    "chai": "^4.3.9",
+    "chai-http": "^4.4.0",
+    "mocha": "^10.2.0",
+    "supertest": "^6.3.3"
   }
 }
